@@ -1,6 +1,6 @@
-CREATE database employees;
+CREATE database employees_db;
 
-USE employees;
+USE employees_db;
 
 CREATE TABLE departments (
   position INT NOT NULL,
