@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/abraspin/employee-tracker#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "inquirer": "^7.3.3"
   }
 }
