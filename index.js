@@ -2,6 +2,7 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+const util = require("util");
 
 // Create/configure our MySQL connection
 const connection = mysql.createConnection({
@@ -12,6 +13,9 @@ const connection = mysql.createConnection({
   database: "employees_db",
 });
 
+//connection.query now returns a promise
+connection.query = util.promisify(connection.query);
+
 // Connect to the MySQL server, and call `mainPrompt()` when connected
 connection.connect((err) => {
   if (err) {
@@ -21,8 +25,8 @@ connection.connect((err) => {
   mainPrompt();
 });
 
-welcomeLogger();
-mainPrompt();
+// welcomeLogger();
+// mainPrompt();
 
 function welcomeLogger() {
   console.log(`
@@ -67,6 +71,11 @@ function mainPrompt() {
     .then(onMainPromptAnswer);
 }
 
+//TODO:
+// tariq's example
+// const pQuery = util.promisify(connection.connect).bin(connection);
+// const data = await pQuery("SELECT *{ FROM  movies");
+
 function onMainPromptAnswer({ action }) {
   switch (action) {
     case "View All Departments":
@@ -82,7 +91,7 @@ function onMainPromptAnswer({ action }) {
       addNewDepartment();
       break;
     case "Add New Role":
-      // songAndAlbumSearch();
+      addNewRole();
       break;
     case "Add New Employee":
       // songAndAlbumSearch();
@@ -148,11 +157,113 @@ function addNewDepartment() {
           throw err;
         }
         console.log(`\n✨ The new department: "${newDepartment.name}" was created successfully!\n`);
-        // re-prompt the user for if they want to bid or post
         mainPrompt();
       });
     });
 }
+
+// function getDepartmentIDFromName(departmentName) {
+//   return connection.query("SELECT id FROM departments WHERE name = ?", departmentName, (err) => {
+//     if (err) {
+//       throw err;
+//     }
+//   });
+// }
+//TODO: add try/catch ? at the end?? .catch(err)?
+
+function getDepartments() {
+  return connection.query(
+    "SELECT * FROM departments"
+    //FIXME: why does un-commenting this make it hang up here?
+    // , (err) => {
+    //   if (err) {
+    //     throw err;
+    //   }
+    // }
+  );
+}
+
+function addNewRole() {
+  getDepartments().then((data) => {
+    inquirer
+      .prompt([
+        {
+          name: "roleTitle",
+          type: "input",
+          message: "What is the title of the new Role?",
+        },
+        { name: "roleSalary", type: "input", message: "What is the salary for the new Role?" },
+        { name: "roleDepartment", type: "list", message: "In which Department is the new Role?", choices: data },
+      ])
+      .then(({ roleTitle, roleSalary, roleDepartment }) => {
+        connection.query("SELECT id FROM departments WHERE name = ?", roleDepartment, (err, res) => {
+          console.log("-------------------------->");
+          console.log("addNewRole -> departmentID", res);
+
+          const newRole = { title: roleTitle, salary: roleSalary, department_id: res[0].id };
+          connection.query("INSERT INTO roles SET ?", newRole, (err) => {
+            if (err) {
+              throw err;
+            }
+            console.log(`\n✨ The new role: "${newRole.title}" was created successfully!\n`);
+            mainPrompt();
+          });
+        });
+      });
+  });
+}
+
+//   return;
+//       // .then((data) => {
+//       // .then(({ roleTitle, roleSalary, roleDepartmentID }) => {
+//         //   // const newRole = { title: data.roleTitle, salary: data.roleSalary, SELECT id FROM department WHERE name = DEPARTMENT NAME)) };
+//         //   // connection.query("INSERT INTO roles SET ?", newRole, (err) => {
+//         // console.log(roleTitle, roleSalary, roleDepartmentID);
+
+//         console.log("---------------------------------------->" + roleDepartmentID);
+
+//         connection.query("SELECT id FROM departments WHERE name = ?", roleDepartmentID, (err) => {
+//           if (err) {
+//             throw err;
+//           }
+
+//           const newRoleDetails = { roleTitle, roleSalary, res };
+//           console.log("addNewRole -> newRoleDetails", newRoleDetails);
+
+//           return;
+
+//           connection.query("INSERT INTO role (title, salary, department_id) VALUES ?", newRoleDetails, (err) => {
+//             if (err) {
+//               throw err;
+//             }
+
+//             console.log(`\n✨ The new role: "${newRole.name}" was created successfully!\n`);
+//             mainPrompt();
+//           });
+//         });
+//       });
+//   });
+// }
+
+const runQuery = async (query) => {
+  try {
+    const returnData = await connection.query(query, (err, res) => {
+      if (err) throw err;
+      // res.end();
+      return returnData;
+    });
+  } catch (err) {}
+};
+
+//FIXME: won't work without async await
+// function getListOfDepartments() {
+//   connection.query("SELECT * FROM roles", (err, res) => {
+//     if (err) {
+//       throw err;
+//     }
+//     res.end;
+//   });
+// }
 
 // function artistSearch() {
 //   inquirer
