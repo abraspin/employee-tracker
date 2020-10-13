@@ -76,7 +76,7 @@ function onMainPromptAnswer({ action }) {
       viewAllRoles();
       break;
     case "View All Employees":
-      // rangeSearch();
+      viewAllEmployees();
       break;
     case "Add New Department":
       // songSearch();
@@ -120,6 +120,19 @@ function viewAllRoles() {
     mainPrompt();
   });
 }
+
+function viewAllEmployees() {
+  connection.query("SELECT * FROM employees", (err, res) => {
+    console.log("\n--Employees query complete--");
+    if (err) {
+      throw err;
+    }
+    console.table("\nEmployees:", res);
+    console.log("-----------------------------------");
+    mainPrompt();
+  });
+}
+
 // function artistSearch() {
 //   inquirer
 //     .prompt({
