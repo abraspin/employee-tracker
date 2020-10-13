@@ -97,42 +97,16 @@ function onMainPromptAnswer({ action }) {
   }
 }
 
-viewAllDepartments(){
-  const query = "SELECT * FROM top5000";
-  // connection.query(query, { artist }, (err, res) => {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //   for (let i = 0; i < res.length; i++) {
-  //     console.log(`Position: ${res[i].position} || Song: ${res[i].song} || Year: ${res[i].year}`);
-  //   }
-  //   mainPrompt();
-  // });
-
-  // const query = connection.query("SELECT * FROM departments ?", ["Rock"], (err, res) => {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //   for (let i = 0; i < res.length; i++) {
-  //     logSong(res[i]);
-  //   }
-  // })
-
-
-
+function viewAllDepartments() {
   connection.query("SELECT * FROM departments", (err, res) => {
-    console.log("Departments query complete");
+    console.log("\n--Departments query complete--");
     if (err) {
       throw err;
     }
-    // for (let i = 0; i < res.length; i++) {
-    //   logSong(res[i]);
-    // }
-    console.table(res)
+    console.table("\nDepartments:", res);
     console.log("-----------------------------------");
+    mainPrompt();
   });
-
-
 }
 
 // function artistSearch() {

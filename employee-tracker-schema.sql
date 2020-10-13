@@ -3,9 +3,9 @@ CREATE database employees_db;
 USE employees_db;
 
 CREATE TABLE departments (
-  position INT NOT NULL,
+  id INT NOT NULL,
   name VARCHAR(30) NOT NULL,
-  PRIMARY KEY (position)
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE roles (
@@ -25,3 +25,11 @@ CREATE TABLE employees (
   PRIMARY KEY (id)
 );
 
+INSERT INTO departments
+VALUES 
+(1, "Accounting"),
+(2,"Engineering"),
+(3, "Sales"),
+(4, "Human Resources"),
+(5,  "Customer Service"),
+(6, "Quality Assurance")
