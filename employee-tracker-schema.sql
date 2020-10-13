@@ -33,3 +33,12 @@ VALUES
 (4, "Human Resources"),
 (5,  "Customer Service"),
 (6, "Quality Assurance")
+
+INSERT INTO roles
+VALUES 
+(1, "Accountant", 50,000, 1),
+(1, "Software Engineer", 60,000, 2),
+(1, "Sales Manager", 70,000, 3),
+(1, "HR Manager", 65,000, 4),
+(1, "Customer Service Representative", 35,000, 5),
+(1, "QA Technician", 45,000, 6),

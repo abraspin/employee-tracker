@@ -73,7 +73,7 @@ function onMainPromptAnswer({ action }) {
       viewAllDepartments();
       break;
     case "View All Roles":
-      // multiSearch();
+      viewAllRoles();
       break;
     case "View All Employees":
       // rangeSearch();
@@ -109,6 +109,17 @@ function viewAllDepartments() {
   });
 }
 
+function viewAllRoles() {
+  connection.query("SELECT * FROM roles", (err, res) => {
+    console.log("\n--Roles query complete--");
+    if (err) {
+      throw err;
+    }
+    console.table("\nRoles:", res);
+    console.log("-----------------------------------");
+    mainPrompt();
+  });
+}
 // function artistSearch() {
 //   inquirer
 //     .prompt({
