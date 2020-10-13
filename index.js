@@ -79,7 +79,7 @@ function onMainPromptAnswer({ action }) {
       viewAllEmployees();
       break;
     case "Add New Department":
-      // songSearch();
+      addNewDepartment();
       break;
     case "Add New Role":
       // songAndAlbumSearch();
@@ -131,6 +131,27 @@ function viewAllEmployees() {
     console.log("-----------------------------------");
     mainPrompt();
   });
+}
+
+function addNewDepartment() {
+  inquirer
+    .prompt({
+      name: "newDepartment",
+      type: "input",
+      //FIXME: Why does this prompt show up twice until you start typing?
+      message: "What is the name of the new Department?",
+    })
+    .then((data) => {
+      const newDepartment = { name: data.newDepartment };
+      connection.query("INSERT INTO departments SET ?", newDepartment, (err) => {
+        if (err) {
+          throw err;
+        }
+        console.log(`\n✨ The new department: "${newDepartment.name}" was created successfully!\n`);
+        // re-prompt the user for if they want to bid or post
+        mainPrompt();
+      });
+    });
 }
 
 // function artistSearch() {
