@@ -1,13 +1,14 @@
 // Import our dependencies
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 // Create/configure our MySQL connection
 const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "BuckyFlitwick110!",
+  password: "pV2XnNfDhy3jTWEe",
   database: "employees_db",
 });
 
@@ -19,6 +20,9 @@ connection.connect((err) => {
   welcomeLogger();
   mainPrompt();
 });
+
+welcomeLogger();
+mainPrompt();
 
 function welcomeLogger() {
   console.log(`
@@ -42,7 +46,7 @@ function mainPrompt() {
   inquirer
     .prompt({
       name: "action",
-      type: "rawlist",
+      type: "list",
       message: "What would you like to do?",
       choices: [
         "View All Departments",
@@ -57,33 +61,78 @@ function mainPrompt() {
         // "Remove Employee",
         // "Update Employee Manager",
         // "View All Employees by Manager",
+        "Exit",
       ],
     })
     .then(onMainPromptAnswer);
 }
 
 function onMainPromptAnswer({ action }) {
-  //   switch (action) {
-  //     case "Find songs by artist":
-  //       artistSearch();
-  //       break;
-  //     case "Find all artists who appear more than once":
-  //       multiSearch();
-  //       break;
-  //     case "Find data within a specific range":
-  //       rangeSearch();
-  //       break;
-  //     case "Search for a specific song":
-  //       songSearch();
-  //       break;
-  //     case "Find artists with a top song and top album in the same year":
-  //       songAndAlbumSearch();
-  //       break;
-  //     case "Exit":
-  //     default:
-  //       console.log("Goodbye!");
-  //       connection.end();
+  switch (action) {
+    case "View All Departments":
+      viewAllDepartments();
+      break;
+    case "View All Roles":
+      // multiSearch();
+      break;
+    case "View All Employees":
+      // rangeSearch();
+      break;
+    case "Add New Department":
+      // songSearch();
+      break;
+    case "Add New Role":
+      // songAndAlbumSearch();
+      break;
+    case "Add New Employee":
+      // songAndAlbumSearch();
+      break;
+    case "Update Employee Role":
+      // songAndAlbumSearch();
+      break;
+    case "Exit":
+    default:
+      console.log("Goodbye!");
+      connection.end();
+  }
+}
+
+viewAllDepartments(){
+  const query = "SELECT * FROM top5000";
+  // connection.query(query, { artist }, (err, res) => {
+  //   if (err) {
+  //     throw err;
   //   }
+  //   for (let i = 0; i < res.length; i++) {
+  //     console.log(`Position: ${res[i].position} || Song: ${res[i].song} || Year: ${res[i].year}`);
+  //   }
+  //   mainPrompt();
+  // });
+
+  // const query = connection.query("SELECT * FROM departments ?", ["Rock"], (err, res) => {
+  //   if (err) {
+  //     throw err;
+  //   }
+  //   for (let i = 0; i < res.length; i++) {
+  //     logSong(res[i]);
+  //   }
+  // })
+
+
+
+  connection.query("SELECT * FROM departments", (err, res) => {
+    console.log("Departments query complete");
+    if (err) {
+      throw err;
+    }
+    // for (let i = 0; i < res.length; i++) {
+    //   logSong(res[i]);
+    // }
+    console.table(res)
+    console.log("-----------------------------------");
+  });
+
+
 }
 
 // function artistSearch() {
