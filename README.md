@@ -1,8 +1,8 @@
 # employee-tracker
  ![MIT_License License](https://img.shields.io/badge/License-MIT_License-brightgreen)
-  ![Repo-Code_Composition](https://img.shields.io/github/languages/top/abraspin/employee-template-engine) 
+  ![Repo-Code_Composition](https://img.shields.io/github/languages/top/abraspin/employee-tracker) 
   
-A database solution for managing a company's employees using node, inquirer, and MySQL.
+A database solution for managing a company's employees using Node.JS, express, inquirer, and MySQL.
  
 ---
 
