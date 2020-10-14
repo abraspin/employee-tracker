@@ -3,6 +3,11 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 const util = require("util");
+const { promises } = require("fs");
+
+let rolesList = [];
+let employeesList = [];
+let departmentsList = [];
 
 // Create/configure our MySQL connection
 const connection = mysql.createConnection({
@@ -21,13 +26,12 @@ connection.connect((err) => {
   if (err) {
     throw err;
   }
+  // welcome text and main program functionality
   welcomeLogger();
   mainPrompt();
 });
 
-// welcomeLogger();
-// mainPrompt();
-
+//prints program title to console
 function welcomeLogger() {
   console.log(`
     +-----------------------------------------------------+
@@ -46,6 +50,8 @@ function welcomeLogger() {
     +-----------------------------------------------------+                                            
 `);
 }
+
+//prompt user for primary task desired
 function mainPrompt() {
   inquirer
     .prompt({
@@ -76,6 +82,7 @@ function mainPrompt() {
 // const pQuery = util.promisify(connection.connect).bin(connection);
 // const data = await pQuery("SELECT *{ FROM  movies");
 
+// pass in selected action to switch statement
 function onMainPromptAnswer({ action }) {
   switch (action) {
     case "View All Departments":
@@ -106,6 +113,7 @@ function onMainPromptAnswer({ action }) {
   }
 }
 
+// Returns query of all columns from departments table
 function viewAllDepartments() {
   connection.query("SELECT * FROM departments", (err, res) => {
     console.log("\n--Departments query complete--");
@@ -113,24 +121,26 @@ function viewAllDepartments() {
       throw err;
     }
     console.table("\nDepartments:", res);
-    console.log("-----------------------------------");
+    console.log("----------------------------------------------------");
     mainPrompt();
   });
 }
 
+// Returns query of all columns from roles table
 function viewAllRoles() {
-  connection.query("SELECT * FROM roles", (err, res) => {
-    console.log("\n--Roles query complete--");
+  // FIXME: how do I omit the department ID columns, and rename the department column "department"?
+  connection.query("SELECT * FROM roles INNER JOIN departments ON roles.department_id = departments.id ;", (err, res) => {
+    console.log("\n----Roles query complete----");
     if (err) {
       throw err;
     }
     console.table("\nRoles:", res);
-    console.log("-----------------------------------");
+    console.log("----------------------------------------------------");
     mainPrompt();
   });
 }
 
-//TODO: need some joins in here for names instead of ID's for role and dept.
+//Query employee table and join roles and departments for desired employee parameters shown
 function viewAllEmployees() {
   const query = `SELECT 
   e.first_name, e.last_name, r.title, d.name AS department, r.salary
@@ -142,6 +152,7 @@ INNER JOIN departments d ON r.department_id = d.id;`;
   // -- LEFT JOIN employees e1 ON e.manager_id = e1.id;
   // -- ,CONCAT(e1.first_name, " ", e1.last_name) as manager
 
+  // log response to console
   connection.query(query, (err, res) => {
     console.log("\n--Employees query complete--");
     if (err) {
@@ -153,12 +164,12 @@ INNER JOIN departments d ON r.department_id = d.id;`;
   });
 }
 
+// Prompt user for new department name and add to departments table
 function addNewDepartment() {
   inquirer
     .prompt({
       name: "newDepartment",
       type: "input",
-      //FIXME: Why does this prompt show up twice until you start typing?
       message: "What is the name of the new Department?",
     })
     .then((data) => {
@@ -174,6 +185,7 @@ function addNewDepartment() {
 }
 
 //TODO: add try/catch ? at the end?? .catch(err)?
+// Prompt user for new role details and add to roles table
 function addNewRole() {
   getDepartments().then((data) => {
     inquirer
@@ -193,7 +205,7 @@ function addNewRole() {
             if (err) {
               throw err;
             }
-            console.log(`\n✨ The new role: "${newRole.title}" was created successfully!\n`);
+            console.log(`\n The new role: "${newRole.title}" was created successfully!\n`);
             mainPrompt();
           });
         });
@@ -201,53 +213,105 @@ function addNewRole() {
   });
 }
 
-function addNewEmployee() {
-  let rolesList = [];
-  let employeesList = [];
+//turning this into getEmployees for scoping
+function getRoles() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT roles.id, title FROM roles", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      for (let i = 0; i < res.length; i++) {
+        rolesList.push({ name: res[i].title, value: res[i].id });
+      }
+      // console.log("rolesList from GetRoles()", rolesList);
+      resolve(rolesList);
+    });
+  });
+}
 
-  getRoles()
-    .then((rolesList) => {
-      rolesList = rolesList;
-    })
-    .then(
-      (data) =>
-        (employeesList = connection.query("SELECT first_name, last_name FROM employees", (err) => {
+function getDepartments() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT departments.id, name FROM departments", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      for (let i = 0; i < res.length; i++) {
+        departmentsList.push({ name: res[i].name, value: res[i].id });
+      }
+      // console.log("departmentsList from GetDepartments()", departmentsList);
+      resolve(departmentsList);
+    });
+  });
+}
+
+function getEmployeeNames() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS employees FROM employees", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      // console.log(res);
+      for (let i = 0; i < res.length; i++) {
+        employeesList.push({ name: res[i].employees, value: res[i].id });
+      }
+
+      // console.log("employeesList from getEmployeeNames()", employeesList);
+      resolve(employeesList);
+    });
+  });
+}
+
+async function addNewEmployee() {
+  // let rolesList = await getRoles();
+  await getRoles();
+  await getEmployeeNames();
+
+  // console.log("addNewEmployee -------------> getEmployeeNames", getEmployeeNames);
+  // console.log("addNewEmployee ----------------> rolesList", rolesList);
+
+  inquirer
+    .prompt([
+      {
+        name: "firstName",
+        type: "input",
+        message: "What is new Employee's FIRST name?",
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is new Employee's LAST name?",
+      },
+      {
+        name: "role",
+        type: "list",
+        message: "In which Role is the new employee?",
+        choices: rolesList,
+      },
+      {
+        name: "manager",
+        type: "list",
+        message: "Who is the Manager of the new Employee?",
+        choices: employeesList,
+      },
+    ])
+    .then(({ firstName, lastName, role, manager }) => {
+      connection.query(
+        `INSERT INTO 
+        employees (first_name, last_name, role_id, manager_id)
+        VALUES (?, ?, ?, ?)`,
+        [firstName, lastName, role, manager],
+        (err, res) => {
           if (err) throw err;
-
-          console.log("--------------->" + rolesList);
-          console.log("--------------->" + employeesList);
-        }))
-    )
-    .then((data) => {});
-  return;
-  connection
-    .query("SELECT first_name, last_name FROM employees", (err) => {
-      if (err) throw err;
-    })
-    .then((data) => {
-      inquirer.prompt([
-        {
-          name: "firstName",
-          type: "input",
-          message: "What is new Employee's FIRST name?",
-        },
-        {
-          name: "lastName",
-          type: "input",
-          message: "What is new Employee's LAST name?",
-        },
-        {
-          name: "firstName",
-          type: "list",
-          message: "In which Department is the new Role?",
-          choices: data,
-        },
-      ]);
+          console.log(`\nSuccessfully addeed new employee: ${firstName} ${lastName}`);
+          mainPrompt();
+        }
+      );
     });
 }
 
 //TODO: "SELECT id, CONCAT(e.first_name, ' ', e.last_name) as name FROM employee_tracker.employee e";
 
+//FIXME: doesn't work yet
 function updateEmployeeRole() {
   connection.query("SELECT id, CONCAT(first_name, ' ', last_name) as employee FROM employee", (err, allEmployees) => {
     console.log("updateEmployeeRole ---------------> allEmployees", allEmployees);
@@ -304,30 +368,6 @@ function updateEmployeeRole() {
 //       return connection.query("SELECT * FROM employees WHERE role_id=?", res);
 //     });
 // }
-
-function getDepartments() {
-  return connection.query(
-    "SELECT * FROM departments"
-    //FIXME: why does un-commenting this make it hang up here?
-    // , (err) => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    // }
-  );
-}
-
-function getRoles() {
-  return connection.query(
-    "SELECT * FROM roles"
-    //FIXME: why does un-commenting this make it hang up here?
-    // , (err) => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    // }
-  );
-}
 
 // const runQuery = async (query) => {
 //   try {
