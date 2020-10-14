@@ -125,15 +125,18 @@ function viewAllDepartments() {
 // Returns query of all columns from roles table
 function viewAllRoles() {
   // FIXME: how do I omit the department ID columns, and rename the department column "department"?
-  connection.query("SELECT * FROM roles INNER JOIN departments ON roles.department_id = departments.id ;", (err, res) => {
-    console.log("\n----Roles query complete----");
-    if (err) {
-      throw err;
+  connection.query(
+    "SELECT roles.id, roles.title, roles.salary, departments.name FROM roles INNER JOIN departments ON roles.department_id = departments.id ORDER BY roles.id;",
+    (err, res) => {
+      console.log("\n----Roles query complete----");
+      if (err) {
+        throw err;
+      }
+      console.table("\nRoles:", res);
+      console.log("----------------------------------------------------");
+      mainPrompt();
     }
-    console.table("\nRoles:", res);
-    console.log("----------------------------------------------------");
-    mainPrompt();
-  });
+  );
 }
 
 //Query employee table and join roles and departments for desired employee parameters shown
@@ -178,33 +181,39 @@ function addNewDepartment() {
     });
 }
 
-//TODO: add try/catch ? at the end?? .catch(err)?
 // Prompt user for new role details and add to roles table
-function addNewRole() {
-  getDepartments().then((data) => {
-    inquirer
-      .prompt([
-        {
-          name: "roleTitle",
-          type: "input",
-          message: "What is the title of the new Role?",
-        },
-        { name: "roleSalary", type: "input", message: "What is the salary for the new Role?" },
-        { name: "roleDepartment", type: "list", message: "In which Department is the new Role?", choices: data },
-      ])
-      .then(({ roleTitle, roleSalary, roleDepartment }) => {
-        connection.query("SELECT id FROM departments WHERE name = ?", roleDepartment, (err, res) => {
-          const newRole = { title: roleTitle, salary: roleSalary, department_id: res[0].id };
-          connection.query("INSERT INTO roles SET ?", newRole, (err) => {
-            if (err) {
-              throw err;
-            }
-            console.log(`\n The new role: "${newRole.title}" was created successfully!\n`);
-            mainPrompt();
-          });
-        });
-      });
-  });
+async function addNewRole() {
+  //this function will set the global "departmentsList" array variable = to list of department objects (name: name , value: id)
+  await getDepartments();
+  // console.log(departmentsList);
+
+  inquirer
+    .prompt([
+      {
+        name: "roleTitle",
+        type: "input",
+        message: "What is the title of the new Role?",
+      },
+      { name: "roleSalary", type: "input", message: "What is the salary for the new Role?" },
+      { name: "roleDepartment", type: "list", message: "In which Department is the new Role?", choices: departmentsList },
+    ])
+    .then(({ roleTitle, roleSalary, roleDepartment }) => {
+      const newRole = { title: roleTitle, salary: roleSalary, department_id: roleDepartment };
+
+      // console.log("addNewRole -> newRole", newRole);
+      connection.query(
+        "INSERT INTO roles (title,salary,department_id) VALUES (?, ?, ?)",
+        [roleTitle, roleSalary, roleDepartment],
+        (err) => {
+          if (err) {
+            throw err;
+          }
+          console.log(`\n The new role: "${newRole.title}" was created successfully!\n`);
+          mainPrompt();
+        }
+      );
+      // });
+    });
 }
 
 //turning this into getEmployees for scoping
