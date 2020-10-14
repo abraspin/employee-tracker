@@ -214,20 +214,6 @@ function addNewRole() {
 }
 
 //turning this into getEmployees for scoping
-function getRoles() {
-  return new Promise((resolve, reject) => {
-    connection.query("SELECT roles.id, title FROM roles", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
-      for (let i = 0; i < res.length; i++) {
-        rolesList.push({ name: res[i].title, value: res[i].id });
-      }
-      // console.log("rolesList from GetRoles()", rolesList);
-      resolve(rolesList);
-    });
-  });
-}
 
 function getDepartments() {
   return new Promise((resolve, reject) => {
@@ -257,6 +243,21 @@ function getEmployeeNames() {
 
       // console.log("employeesList from getEmployeeNames()", employeesList);
       resolve(employeesList);
+    });
+  });
+}
+
+function getRoles() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT roles.id, title FROM roles", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      for (let i = 0; i < res.length; i++) {
+        rolesList.push({ name: res[i].title, value: res[i].id });
+      }
+      // console.log("rolesList from GetRoles()", rolesList);
+      resolve(rolesList);
     });
   });
 }
@@ -309,43 +310,32 @@ async function addNewEmployee() {
     });
 }
 
-//TODO: "SELECT id, CONCAT(e.first_name, ' ', e.last_name) as name FROM employee_tracker.employee e";
+async function updateEmployeeRole() {
+  await getRoles();
+  await getEmployeeNames();
 
-//FIXME: doesn't work yet
-function updateEmployeeRole() {
-  connection.query("SELECT id, CONCAT(first_name, ' ', last_name) as employee FROM employee", (err, allEmployees) => {
-    console.log("updateEmployeeRole ---------------> allEmployees", allEmployees);
-    if (err) throw err;
-    connection.query("SELECT id, title, salary, department_id FROM roles", (err, allRoles) => {
-      console.log("updateEmployeeRole -------------> allRoles", allRoles);
-      if (err) throw err;
-
-      inquirer
-        .prompt([
-          {
-            name: "employeeName",
-            type: "list",
-            message: "Which Employee's Role would you like to update?",
-            choices: allEmployees,
-          },
-          {
-            name: "newRole",
-            type: "list",
-            message: "What is this Employee's new Role?",
-            choices: allRoles,
-          },
-        ])
-        .then(({ employeeName, newRole }) => {
-          let employee = allEmployee.find((employeeEl) => employeeEl.name === employeeName);
-          let role = allRole.find((employeeEl) => employeeEl.name === newRole);
-          connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [role.id, employee.id], (err, res) => {
-            if (err) throw err;
-            console.log(`\nSuccessfully Updated ${employeeName} Role To ${newRole}\n`);
-            mainPrompt();
-          });
-        });
+  inquirer
+    .prompt([
+      {
+        name: "selectedEmployee",
+        type: "list",
+        message: "Which Employee's Role would you like to update?",
+        choices: employeesList,
+      },
+      {
+        name: "newRole",
+        type: "list",
+        message: "What is this Employee's new Role?",
+        choices: rolesList,
+      },
+    ])
+    .then(({ selectedEmployee, newRole }) => {
+      connection.query("UPDATE employees SET role_id = ? WHERE id = ?", [newRole, selectedEmployee], (err, res) => {
+        if (err) throw err;
+        console.log(`\nSuccessfully Updated ${selectedEmployee} Role To ${newRole}\n`);
+        mainPrompt();
+      });
     });
-  });
 }
 ///////////////////////////////////LIL HELPERS/////////////////////////////////
 
