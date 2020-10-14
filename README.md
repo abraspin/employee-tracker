@@ -33,6 +33,7 @@ This is a "Command Line Interace" application running in a Node.js runtime envir
 ---
 
 ## App in Action
+Basic Functionality:
 ![example-video](./images/employee-tracker-app-demo.gif)
 
 
