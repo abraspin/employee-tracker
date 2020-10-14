@@ -66,10 +66,10 @@ function mainPrompt() {
         "Add New Role",
         "Add New Employee",
         "Update Employee Role",
+        "Update Employee Manager",
         //TODO: Future development
         // "View All Employees by Department",
         // "Remove Employee",
-        // "Update Employee Manager",
         // "View All Employees by Manager",
         "Exit",
       ],
@@ -100,6 +100,9 @@ function onMainPromptAnswer({ action }) {
       break;
     case "Update Employee Role":
       updateEmployeeRole();
+      break;
+    case "Update Employee Manager":
+      updateEmployeeManager();
       break;
     case "Exit":
     default:
@@ -288,6 +291,32 @@ async function updateEmployeeRole() {
     });
 }
 
+async function updateEmployeeManager() {
+  await getEmployeeNames();
+
+  inquirer
+    .prompt([
+      {
+        name: "selectedEmployee",
+        type: "list",
+        message: "Which Employee's Manager would you like to update?",
+        choices: employeesList,
+      },
+      {
+        name: "newManager",
+        type: "list",
+        message: "Who is this Employee's new Manager?",
+        choices: employeesList,
+      },
+    ])
+    .then(({ selectedEmployee, newManager }) => {
+      connection.query("UPDATE employees SET manager_id = ? WHERE id = ?", [newManager, selectedEmployee], (err, res) => {
+        if (err) throw err;
+        console.log(`\nSuccessfully updated employee Manager!\n`);
+        mainPrompt();
+      });
+    });
+}
 /////////////////////////////////// HELPERS/////////////////////////////////
 
 // helper function to sequentially set global array variable
