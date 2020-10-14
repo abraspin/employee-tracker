@@ -38,16 +38,16 @@ function welcomeLogger() {
     |    ______                 _                         |
     |   |  ____|               | |                        | 
     |   | |__   _ __ ___  _ __ | | ___  _   _  ___  ___   |
-    |   |  __| | '_  _  \| '_ \| |/ _ \| | | |/ _ \/ _ \  |
+    |   |  __| | '_  _  || '_ || |/ _ || | | |/ _ |/ _ |  |
     |   | |____| | | | | | |_) | | (_) | |_| |  __/  __/  |
-    |   |______|_|_|_|_|_| .__/|_|\___/ \__, |\___|\___|  |
+    |   |______|_|_|_|_|_| .__/|_||___/ |__, ||___||___|  |
     |          |__   __| | |       | |   __/ |            |
     |             | |_ __|_|__  ___| | _|___/_ __         | 
-    |             | | '__/ _  |/ __| |/ / _ \ '__|        |
+    |             | | '__/ _  |/ __| |/ / _ | '__|        |
     |             | | | | (_| | (__|   <  __/ |           |
-    |             |_|_|  \__,_|\___|_|\_\___|_|           |
+    |             |_|_|  |__,_||___|_||_|___|_|           |
     |                                                     |
-    +-----------------------------------------------------+                                            
+    +-----------------------------------------------------+                    
 `);
 }
 
@@ -66,7 +66,7 @@ function mainPrompt() {
         "Add New Role",
         "Add New Employee",
         "Update Employee Role",
-        //TODO: Optional
+        //TODO: Future development
         // "View All Employees by Department",
         // "Remove Employee",
         // "Update Employee Manager",
@@ -76,11 +76,6 @@ function mainPrompt() {
     })
     .then(onMainPromptAnswer);
 }
-
-//TODO:
-// tariq's example
-// const pQuery = util.promisify(connection.connect).bin(connection);
-// const data = await pQuery("SELECT *{ FROM  movies");
 
 // pass in selected action to switch statement
 function onMainPromptAnswer({ action }) {
