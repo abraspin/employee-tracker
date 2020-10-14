@@ -294,9 +294,9 @@ async function updateEmployeeRole() {
 function getDepartments() {
   return new Promise((resolve, reject) => {
     connection.query("SELECT departments.id, name FROM departments", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
+      if (err) {
+        throw err;
+      }
       for (let i = 0; i < res.length; i++) {
         departmentsList.push({ name: res[i].name, value: res[i].id });
       }
@@ -309,10 +309,10 @@ function getDepartments() {
 function getEmployeeNames() {
   return new Promise((resolve, reject) => {
     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS employees FROM employees", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
-      // console.log(res);
+      if (err) {
+        throw err;
+      }
+
       for (let i = 0; i < res.length; i++) {
         employeesList.push({ name: res[i].employees, value: res[i].id });
       }
@@ -326,9 +326,9 @@ function getEmployeeNames() {
 function getRoles() {
   return new Promise((resolve, reject) => {
     connection.query("SELECT roles.id, title FROM roles", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
+      if (err) {
+        throw err;
+      }
       for (let i = 0; i < res.length; i++) {
         rolesList.push({ name: res[i].title, value: res[i].id });
       }
