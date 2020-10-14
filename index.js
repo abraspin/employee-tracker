@@ -115,6 +115,7 @@ function viewAllDepartments() {
     if (err) {
       throw err;
     }
+    //log
     console.table("\nDepartments:", res);
     console.log("----------------------------------------------------");
     mainPrompt();
@@ -138,14 +139,12 @@ function viewAllRoles() {
 //Query employee table and join roles and departments for desired employee parameters shown
 function viewAllEmployees() {
   const query = `SELECT 
-  e.first_name, e.last_name, r.title, d.name AS department, r.salary
-FROM 
-  employees e
-INNER JOIN roles r ON e.role_id = r.id 
-INNER JOIN departments d ON r.department_id = d.id;`;
-
-  // -- LEFT JOIN employees e1 ON e.manager_id = e1.id;
-  // -- ,CONCAT(e1.first_name, " ", e1.last_name) as manager
+  e1.id, e1.first_name, e1.last_name, r.title, d.name AS department, r.salary, CONCAT(e2.first_name, " ", e2.last_name) as manager 
+     FROM 
+       employees e1
+     INNER JOIN roles r ON e1.role_id = r.id 
+     INNER JOIN departments d ON r.department_id = d.id
+     LEFT JOIN employees e2 ON e1.manager_id = e2.id;`;
 
   // log response to console
   connection.query(query, (err, res) => {
