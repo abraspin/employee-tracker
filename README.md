@@ -19,9 +19,9 @@ A database solution for managing a company's employees using node, inquirer, and
 ---
 
 ## User Story
->AS a manager  
->I want to generate a webpage that displays my team's basic info  
->SO that I have quick access to emails and GitHub profiles  
+>As a business owner
+>I want to be able to view and manage the departments, roles, and employees in my company
+>So that I can organize and plan my business
 
 ---
 
