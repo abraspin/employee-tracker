@@ -124,7 +124,6 @@ function viewAllDepartments() {
 
 // Returns query of all columns from roles table
 function viewAllRoles() {
-  // FIXME: how do I omit the department ID columns, and rename the department column "department"?
   connection.query(
     "SELECT roles.id, roles.title, roles.salary, departments.name FROM roles INNER JOIN departments ON roles.department_id = departments.id ORDER BY roles.id;",
     (err, res) => {
@@ -141,6 +140,7 @@ function viewAllRoles() {
 
 //Query employee table and join roles and departments for desired employee parameters shown
 function viewAllEmployees() {
+  //build the query string
   const query = `SELECT 
   e1.id, e1.first_name, e1.last_name, r.title, d.name AS department, r.salary, CONCAT(e2.first_name, " ", e2.last_name) as manager 
      FROM 
@@ -150,7 +150,7 @@ function viewAllEmployees() {
      LEFT JOIN employees e2 ON e1.manager_id = e2.id;
      `;
 
-  // log response to console
+  // run query and log response to console
   connection.query(query, (err, res) => {
     console.log("\n--Employees query complete--");
     if (err) {
@@ -186,7 +186,6 @@ function addNewDepartment() {
 async function addNewRole() {
   //this function will set the global "departmentsList" array variable = to list of department objects (name: name , value: id)
   await getDepartments();
-  // console.log(departmentsList);
 
   inquirer
     .prompt([
@@ -201,7 +200,6 @@ async function addNewRole() {
     .then(({ roleTitle, roleSalary, roleDepartment }) => {
       const newRole = { title: roleTitle, salary: roleSalary, department_id: roleDepartment };
 
-      // console.log("addNewRole -> newRole", newRole);
       connection.query(
         "INSERT INTO roles (title,salary,department_id) VALUES (?, ?, ?)",
         [roleTitle, roleSalary, roleDepartment],
@@ -217,62 +215,10 @@ async function addNewRole() {
     });
 }
 
-//turning this into getEmployees for scoping
-
-function getDepartments() {
-  return new Promise((resolve, reject) => {
-    connection.query("SELECT departments.id, name FROM departments", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
-      for (let i = 0; i < res.length; i++) {
-        departmentsList.push({ name: res[i].name, value: res[i].id });
-      }
-      // console.log("departmentsList from GetDepartments()", departmentsList);
-      resolve(departmentsList);
-    });
-  });
-}
-
-function getEmployeeNames() {
-  return new Promise((resolve, reject) => {
-    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS employees FROM employees", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
-      // console.log(res);
-      for (let i = 0; i < res.length; i++) {
-        employeesList.push({ name: res[i].employees, value: res[i].id });
-      }
-
-      // console.log("employeesList from getEmployeeNames()", employeesList);
-      resolve(employeesList);
-    });
-  });
-}
-
-function getRoles() {
-  return new Promise((resolve, reject) => {
-    connection.query("SELECT roles.id, title FROM roles", (err, res) => {
-      // if (err) {
-      //   throw err;
-      // }
-      for (let i = 0; i < res.length; i++) {
-        rolesList.push({ name: res[i].title, value: res[i].id });
-      }
-      // console.log("rolesList from GetRoles()", rolesList);
-      resolve(rolesList);
-    });
-  });
-}
-
 async function addNewEmployee() {
-  // let rolesList = await getRoles();
+  // update global array variables
   await getRoles();
   await getEmployeeNames();
-
-  // console.log("addNewEmployee -------------> getEmployeeNames", getEmployeeNames);
-  // console.log("addNewEmployee ----------------> rolesList", rolesList);
 
   inquirer
     .prompt([
@@ -341,44 +287,52 @@ async function updateEmployeeRole() {
       });
     });
 }
-///////////////////////////////////LIL HELPERS/////////////////////////////////
 
-// function getManagers() {
-//   const managementDeptName = "Management";
-//   connection
-//     .query("SELECT id FROM departments WHERE name = ?", managementDeptName, (err, res) => {
-//       console.log(res);
-//       // ,
-//       // res, ()
-//       //FIXME: why does un-commenting this make it hang up here?
-//       // , (err) => {
-//       //   if (err) {
-//       //     throw err;
-//       //   }
-//       // }
-//       // );
-//     })
-//     .then((res) => {
-//       return connection.query("SELECT * FROM employees WHERE role_id=?", res);
-//     });
-// }
+/////////////////////////////////// HELPERS/////////////////////////////////
 
-// const runQuery = async (query) => {
-//   try {
-//     const returnData = await connection.query(query, (err, res) => {
-//       if (err) throw err;
-//       // res.end();
-//       return returnData;
-//     });
-//   } catch (err) {}
-// };
+// helper function to sequentially set global array variable
+function getDepartments() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT departments.id, name FROM departments", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      for (let i = 0; i < res.length; i++) {
+        departmentsList.push({ name: res[i].name, value: res[i].id });
+      }
+      resolve(departmentsList);
+    });
+  });
+}
 
-//FIXME: won't work without async await
-// function getListOfDepartments() {
-//   connection.query("SELECT * FROM roles", (err, res) => {
-//     if (err) {
-//       throw err;
-//     }
-//     res.end;
-//   });
-// }
+// helper function to sequentially set global array variable
+function getEmployeeNames() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS employees FROM employees", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      // console.log(res);
+      for (let i = 0; i < res.length; i++) {
+        employeesList.push({ name: res[i].employees, value: res[i].id });
+      }
+
+      resolve(employeesList);
+    });
+  });
+}
+
+// helper function to sequentially set global array variable
+function getRoles() {
+  return new Promise((resolve, reject) => {
+    connection.query("SELECT roles.id, title FROM roles", (err, res) => {
+      // if (err) {
+      //   throw err;
+      // }
+      for (let i = 0; i < res.length; i++) {
+        rolesList.push({ name: res[i].title, value: res[i].id });
+      }
+      resolve(rolesList);
+    });
+  });
+}
