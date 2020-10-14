@@ -94,7 +94,7 @@ function onMainPromptAnswer({ action }) {
       addNewRole();
       break;
     case "Add New Employee":
-      // songAndAlbumSearch();
+      addNewEmployee();
       break;
     case "Update Employee Role":
       // songAndAlbumSearch();
@@ -130,8 +130,19 @@ function viewAllRoles() {
   });
 }
 
+//TODO: need some joins in here for names instead of ID's for role and dept.
 function viewAllEmployees() {
-  connection.query("SELECT * FROM employees", (err, res) => {
+  const query = `SELECT 
+  e.first_name, e.last_name, r.title, d.name AS department, r.salary
+FROM 
+  employees e
+INNER JOIN roles r ON e.role_id = r.id 
+INNER JOIN departments d ON r.department_id = d.id;`;
+
+  // -- LEFT JOIN employees e1 ON e.manager_id = e1.id;
+  // -- ,CONCAT(e1.first_name, " ", e1.last_name) as manager
+
+  connection.query(query, (err, res) => {
     console.log("\n--Employees query complete--");
     if (err) {
       throw err;
@@ -162,27 +173,7 @@ function addNewDepartment() {
     });
 }
 
-// function getDepartmentIDFromName(departmentName) {
-//   return connection.query("SELECT id FROM departments WHERE name = ?", departmentName, (err) => {
-//     if (err) {
-//       throw err;
-//     }
-//   });
-// }
 //TODO: add try/catch ? at the end?? .catch(err)?
-
-function getDepartments() {
-  return connection.query(
-    "SELECT * FROM departments"
-    //FIXME: why does un-commenting this make it hang up here?
-    // , (err) => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    // }
-  );
-}
-
 function addNewRole() {
   getDepartments().then((data) => {
     inquirer
@@ -197,9 +188,6 @@ function addNewRole() {
       ])
       .then(({ roleTitle, roleSalary, roleDepartment }) => {
         connection.query("SELECT id FROM departments WHERE name = ?", roleDepartment, (err, res) => {
-          console.log("-------------------------->");
-          console.log("addNewRole -> departmentID", res);
-
           const newRole = { title: roleTitle, salary: roleSalary, department_id: res[0].id };
           connection.query("INSERT INTO roles SET ?", newRole, (err) => {
             if (err) {
@@ -213,47 +201,67 @@ function addNewRole() {
   });
 }
 
-//   return;
-//       // .then((data) => {
-//       // .then(({ roleTitle, roleSalary, roleDepartmentID }) => {
-//         //   // const newRole = { title: data.roleTitle, salary: data.roleSalary, SELECT id FROM department WHERE name = DEPARTMENT NAME)) };
-//         //   // connection.query("INSERT INTO roles SET ?", newRole, (err) => {
-//         // console.log(roleTitle, roleSalary, roleDepartmentID);
+function addNewEmployee() {
+  getManagers().then((data) => {
+    console.log(data);
+  });
+}
 
-//         console.log("---------------------------------------->" + roleDepartmentID);
+///////////////////////////////////LIL HELPERS/////////////////////////////////
 
-//         connection.query("SELECT id FROM departments WHERE name = ?", roleDepartmentID, (err) => {
-//           if (err) {
-//             throw err;
-//           }
-
-//           const newRoleDetails = { roleTitle, roleSalary, res };
-//           console.log("addNewRole -> newRoleDetails", newRoleDetails);
-
-//           return;
-
-//           connection.query("INSERT INTO role (title, salary, department_id) VALUES ?", newRoleDetails, (err) => {
-//             if (err) {
-//               throw err;
-//             }
-
-//             console.log(`\n✨ The new role: "${newRole.name}" was created successfully!\n`);
-//             mainPrompt();
-//           });
-//         });
-//       });
-//   });
-// }
-
-const runQuery = async (query) => {
-  try {
-    const returnData = await connection.query(query, (err, res) => {
-      if (err) throw err;
-      // res.end();
-      return returnData;
+function getManagers() {
+  const managementDeptName = "Management";
+  connection
+    .query("SELECT id FROM departments WHERE name = ?", managementDeptName, (err, res) => {
+      console.log(res);
+      // ,
+      // res, ()
+      //FIXME: why does un-commenting this make it hang up here?
+      // , (err) => {
+      //   if (err) {
+      //     throw err;
+      //   }
+      // }
+      // );
+    })
+    .then((res) => {
+      return connection.query("SELECT * FROM employees WHERE role_id=?", res);
     });
-  } catch (err) {}
-};
+}
+
+function getDepartments() {
+  return connection.query(
+    "SELECT * FROM departments"
+    //FIXME: why does un-commenting this make it hang up here?
+    // , (err) => {
+    //   if (err) {
+    //     throw err;
+    //   }
+    // }
+  );
+}
+
+function getRoles() {
+  return connection.query(
+    "SELECT * FROM roles"
+    //FIXME: why does un-commenting this make it hang up here?
+    // , (err) => {
+    //   if (err) {
+    //     throw err;
+    //   }
+    // }
+  );
+}
+
+// const runQuery = async (query) => {
+//   try {
+//     const returnData = await connection.query(query, (err, res) => {
+//       if (err) throw err;
+//       // res.end();
+//       return returnData;
+//     });
+//   } catch (err) {}
+// };
 
 //FIXME: won't work without async await
 // function getListOfDepartments() {
