@@ -97,7 +97,7 @@ function onMainPromptAnswer({ action }) {
       addNewEmployee();
       break;
     case "Update Employee Role":
-      // songAndAlbumSearch();
+      updateEmployeeRole();
       break;
     case "Exit":
     default:
@@ -202,32 +202,108 @@ function addNewRole() {
 }
 
 function addNewEmployee() {
-  getManagers().then((data) => {
-    console.log(data);
-  });
-}
+  let rolesList = [];
+  let employeesList = [];
 
-///////////////////////////////////LIL HELPERS/////////////////////////////////
-
-function getManagers() {
-  const managementDeptName = "Management";
-  connection
-    .query("SELECT id FROM departments WHERE name = ?", managementDeptName, (err, res) => {
-      console.log(res);
-      // ,
-      // res, ()
-      //FIXME: why does un-commenting this make it hang up here?
-      // , (err) => {
-      //   if (err) {
-      //     throw err;
-      //   }
-      // }
-      // );
+  getRoles()
+    .then((rolesList) => {
+      rolesList = rolesList;
     })
-    .then((res) => {
-      return connection.query("SELECT * FROM employees WHERE role_id=?", res);
+    .then(
+      (data) =>
+        (employeesList = connection.query("SELECT first_name, last_name FROM employees", (err) => {
+          if (err) throw err;
+
+          console.log("--------------->" + rolesList);
+          console.log("--------------->" + employeesList);
+        }))
+    )
+    .then((data) => {});
+  return;
+  connection
+    .query("SELECT first_name, last_name FROM employees", (err) => {
+      if (err) throw err;
+    })
+    .then((data) => {
+      inquirer.prompt([
+        {
+          name: "firstName",
+          type: "input",
+          message: "What is new Employee's FIRST name?",
+        },
+        {
+          name: "lastName",
+          type: "input",
+          message: "What is new Employee's LAST name?",
+        },
+        {
+          name: "firstName",
+          type: "list",
+          message: "In which Department is the new Role?",
+          choices: data,
+        },
+      ]);
     });
 }
+
+//TODO: "SELECT id, CONCAT(e.first_name, ' ', e.last_name) as name FROM employee_tracker.employee e";
+
+function updateEmployeeRole() {
+  connection.query("SELECT id, CONCAT(first_name, ' ', last_name) as employee FROM employee", (err, allEmployees) => {
+    console.log("updateEmployeeRole ---------------> allEmployees", allEmployees);
+    if (err) throw err;
+    connection.query("SELECT id, title, salary, department_id FROM roles", (err, allRoles) => {
+      console.log("updateEmployeeRole -------------> allRoles", allRoles);
+      if (err) throw err;
+
+      inquirer
+        .prompt([
+          {
+            name: "employeeName",
+            type: "list",
+            message: "Which Employee's Role would you like to update?",
+            choices: allEmployees,
+          },
+          {
+            name: "newRole",
+            type: "list",
+            message: "What is this Employee's new Role?",
+            choices: allRoles,
+          },
+        ])
+        .then(({ employeeName, newRole }) => {
+          let employee = allEmployee.find((employeeEl) => employeeEl.name === employeeName);
+          let role = allRole.find((employeeEl) => employeeEl.name === newRole);
+          connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [role.id, employee.id], (err, res) => {
+            if (err) throw err;
+            console.log(`\nSuccessfully Updated ${employeeName} Role To ${newRole}\n`);
+            mainPrompt();
+          });
+        });
+    });
+  });
+}
+///////////////////////////////////LIL HELPERS/////////////////////////////////
+
+// function getManagers() {
+//   const managementDeptName = "Management";
+//   connection
+//     .query("SELECT id FROM departments WHERE name = ?", managementDeptName, (err, res) => {
+//       console.log(res);
+//       // ,
+//       // res, ()
+//       //FIXME: why does un-commenting this make it hang up here?
+//       // , (err) => {
+//       //   if (err) {
+//       //     throw err;
+//       //   }
+//       // }
+//       // );
+//     })
+//     .then((res) => {
+//       return connection.query("SELECT * FROM employees WHERE role_id=?", res);
+//     });
+// }
 
 function getDepartments() {
   return connection.query(
@@ -271,132 +347,4 @@ function getRoles() {
 //     }
 //     res.end;
 //   });
-// }
-
-// function artistSearch() {
-//   inquirer
-//     .prompt({
-//       name: "artist",
-//       type: "input",
-//       message: "What artist would you like to search for?",
-//     })
-//     .then(({ artist }) => {
-//       const query = "SELECT position, song, year FROM top5000 WHERE ?";
-//       connection.query(query, { artist }, (err, res) => {
-//         if (err) {
-//           throw err;
-//         }
-//         for (let i = 0; i < res.length; i++) {
-//           console.log(`Position: ${res[i].position} || Song: ${res[i].song} || Year: ${res[i].year}`);
-//         }
-//         mainPrompt();
-//       });
-//     });
-// }
-
-// function multiSearch() {
-//   const query = "SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1";
-//   connection.query(query, (err, res) => {
-//     if (err) {
-//       throw err;
-//     }
-//     for (let i = 0; i < res.length; i++) {
-//       console.log(res[i].artist);
-//     }
-//     mainPrompt();
-//   });
-// }
-
-// function rangeSearch() {
-//   inquirer
-//     .prompt([
-//       {
-//         name: "start",
-//         type: "input",
-//         message: "Enter starting position: ",
-//         validate: (value) => isNaN(value) === false,
-//       },
-//       {
-//         name: "end",
-//         type: "input",
-//         message: "Enter ending position: ",
-//         validate: (value) => isNaN(value) === false,
-//       },
-//     ])
-//     .then(({ start, end }) => {
-//       const query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-//       connection.query(query, [start, end], (err, res) => {
-//         if (err) {
-//           throw err;
-//         }
-//         for (let i = 0; i < res.length; i++) {
-//           const song = res[i];
-//           console.log(`Position: ${song.position} || Song: ${song.song} || Artist:  ${song.artist} || Year: ${song.year}`);
-//         }
-//         mainPrompt();
-//       });
-//     });
-// }
-
-// function songSearch() {
-//   inquirer
-//     .prompt({
-//       name: "title",
-//       type: "input",
-//       message: "What song would you like to look for?",
-//     })
-//     .then(({ title }) => {
-//       connection.query("SELECT * FROM top5000 WHERE ?", { song: title }, (err, res) => {
-//         if (err) {
-//           throw err;
-//         }
-//         const result = res[0];
-//         console.log(`Position: ${result.position} || Song: ${result.song} || Artist:  ${result.artist} || Year: ${result.year}`);
-//         mainPrompt();
-//       });
-//     });
-// }
-
-// function songAndAlbumSearch() {
-//   inquirer
-//     .prompt({
-//       name: "artist",
-//       type: "input",
-//       message: "What artist would you like to search for?",
-//     })
-//     .then(({ artist }) => {
-//       // Big query! Use a template literal split over multiple lines to make it easier to read
-//       const query = `
-// SELECT
-//   top_albums.year, top_albums.album, top_albums.position, top5000.song, top5000.artist
-// FROM
-//   top_albums
-// INNER JOIN
-//   top5000 ON (top_albums.artist = top5000.artist AND top_albums.year = top5000.year)
-// WHERE
-//   (top_albums.artist = ? AND top5000.artist = ?)
-// ORDER BY
-//   top_albums.year, top_albums.position
-//       `;
-//       // You could use good-old standard string concatenation, ie:
-//       // let query = "SELECT top_albums.year, top_albums.album, top_albums.position, top5000.song, top5000.artist ";
-//       // query += "FROM top_albums INNER JOIN top5000 ON (top_albums.artist = top5000.artist AND top_albums.year ";
-//       // query += "= top5000.year) WHERE (top_albums.artist = ? AND top5000.artist = ?) ORDER BY top_albums.year, top_albums.position";
-
-//       connection.query(query, [artist, artist], (err, res) => {
-//         if (err) {
-//           throw err;
-//         }
-//         console.log(`${res.length} matches found!`);
-//         for (let i = 0; i < res.length; i++) {
-//           const result = res[i];
-//           console.log(
-//             `${i + 1}) Year: ${result.year} || Album Position: ${result.position} || Artist:  ${result.artist} || Song: ${
-//               result.song
-//             } || Album: ${result.album}`
-//           );
-//         }
-//         mainPrompt();
-//       });
-//     });
 // }
