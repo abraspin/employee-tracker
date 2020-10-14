@@ -336,7 +336,7 @@ async function updateEmployeeRole() {
     .then(({ selectedEmployee, newRole }) => {
       connection.query("UPDATE employees SET role_id = ? WHERE id = ?", [newRole, selectedEmployee], (err, res) => {
         if (err) throw err;
-        console.log(`\nSuccessfully Updated ${selectedEmployee} Role To ${newRole}\n`);
+        console.log(`\nSuccessfully updated employee Role!\n`);
         mainPrompt();
       });
     });
